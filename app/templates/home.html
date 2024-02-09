@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>YouTube Downloader</title>
+</head>
+<body>
+    <h1>YouTube Downloader</h1>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.url.label }}<br>
+            {{ form.url(size=40) }}
+        </p>
+        <p>
+            {{ form.video() }}
+            {{ form.audio() }}
+        </p>
+    </form>
+</body>
+</html>
