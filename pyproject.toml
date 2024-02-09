@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "youtube-web-downloader"
+version = "0.1.0"
+description = "\"Flask web application to download YouTube videos\""
+authors = ["Mårten <125393136+mkarls20@users.noreply.github.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+pytube = "^15.0.0"
+
+[tool.poetry.group.dev.dependencies]
+mypy = "^1.8.0"
+ruff = "^0.2.1"
+black = "^24.1.1"
+pytest = "^8.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
