@@ -8,7 +8,7 @@ readme = "README.md"
 packages = [{include = "youtube-web-downloader", from = "src"}]
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = "^3.8 || ^3.9 || ^3.10 || ^3.11 || ^3.12"
 pytube = "^15.0.0"
 flask = "^3.0.2"
 flask-wtf = "^1.2.1"
