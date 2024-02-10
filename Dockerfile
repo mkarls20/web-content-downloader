@@ -27,7 +27,7 @@ EXPOSE 80
 WORKDIR /app/app
 
 # Run app.py when the container launches
-CMD ["tail","-f", "/dev/null"]
+#CMD ["tail","-f", "/dev/null"]
 
 #CMD ["poetry","run", "python", "app.py"]
-#CMD ["poetry", "run", "gunicorn", "-b", "0.0.0.0:80", "app:app"]
+CMD ["poetry", "run", "gunicorn", "-b", "0.0.0.0:80", "app:app"]
