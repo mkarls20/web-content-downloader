@@ -11,10 +11,13 @@ app = Flask(__name__)
 
 
 #load_dotenv(".env.dev")
+if "DOWNLOAD_FOLDER_PATH" not in os.environ:
+    os.environ['DOWNLOAD_FOLDER_PATH'] = './downloads'
 
-os.environ['DOWNLOAD_FOLDER_PATH'] = './downloads'
-#app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
-app.config['SECRET_KEY'] = "secret"
+if "SECRET_KEY" not in os.environ:
+    os.environ['SECRET_KEY'] = "secret"
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+
 class DownloadForm(FlaskForm):
     url = StringField('YouTube URL')
     video = SubmitField('Download Video')
@@ -51,7 +54,7 @@ def download_video(url):
     return 'Video downloaded'
 
 if __name__ == '__main__':
-    #app.run(debug=True)
-    download_audio('https://www.youtube.com/watch?v=eFyc1g_6ffs')
+    app.run(debug=True)
+    #download_audio('https://www.youtube.com/watch?v=eFyc1g_6ffs')
 
     
