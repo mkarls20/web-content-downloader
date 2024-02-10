@@ -3,6 +3,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from pytube import YouTube
 import os
+from pydub import AudioSegment
 
 app = Flask(__name__)
 
@@ -40,8 +41,14 @@ def download_audio(url):
     
     yt = YouTube(url)
     audio = yt.streams.filter(only_audio=True).first()
-    audio.download(output_path=folder_path)
-    return 'Audio downloaded'
+    audio_path = audio.download(output_path=folder_path)
+    
+    # Convert audio to MP3 format
+    audio_file = AudioSegment.from_file(audio_path)
+    mp3_path = os.path.splitext(audio_path)[0] + '.mp3'
+    audio_file.export(mp3_path, format='mp3')
+    
+    return 'Audio downloaded and encoded as MP3'
 
 def download_video(url):
     folder_path = os.getenv('DOWNLOAD_FOLDER_PATH')
@@ -54,7 +61,7 @@ def download_video(url):
     return 'Video downloaded'
 
 if __name__ == '__main__':
-    app.run(debug=True)
-    #download_audio('https://www.youtube.com/watch?v=eFyc1g_6ffs')
+    #app.run(debug=True)
+    download_audio('https://www.youtube.com/watch?v=eFyc1g_6ffs')
 
     
