@@ -35,7 +35,7 @@ def home():
     return render_template('home.html', form=form)
 
 def download_audio(url):
-    folder_path = os.getenv('DOWNLOAD_FOLDER_PATH')
+    folder_path = os.getenv('DOWNLOAD_FOLDER_PATH') + "/audio"
     if not folder_path:
         return 'DOWNLOAD_FOLDER_PATH environment variable is not set'
     
@@ -51,7 +51,7 @@ def download_audio(url):
     return 'Audio downloaded and encoded as MP3'
 
 def download_video(url):
-    folder_path = os.getenv('DOWNLOAD_FOLDER_PATH')
+    folder_path = os.getenv('DOWNLOAD_FOLDER_PATH') + "/video"
     if not folder_path:
         return 'DOWNLOAD_FOLDER_PATH environment variable is not set'
     
