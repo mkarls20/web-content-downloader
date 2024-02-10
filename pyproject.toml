@@ -5,6 +5,7 @@ description = "\"Flask web application to download YouTube videos\""
 authors = ["Mårten <125393136+mkarls20@users.noreply.github.com>"]
 license = "MIT"
 readme = "README.md"
+packages = [{include = "youtube-web-downloader", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.12"
@@ -19,6 +20,9 @@ mypy = "^1.8.0"
 ruff = "^0.2.1"
 black = "^24.1.1"
 pytest = "^8.0.0"
+
+
+
 
 [build-system]
 requires = ["poetry-core"]
