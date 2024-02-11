@@ -7,7 +7,7 @@ description = "\"Flask web application to download YouTube videos\""
 authors = ["Mårten <125393136+mkarls20@users.noreply.github.com>"]
 license = "MIT"
 readme = "README.md"
-packages = [{include = "youtube-web-downloader", from = "src"}]
+packages = [{include = "youtube_web_downloader", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.8 || ^3.9 || ^3.10 || ^3.11 || ^3.12"
