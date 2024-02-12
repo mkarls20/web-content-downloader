@@ -24,7 +24,7 @@ RUN poetry config virtualenvs.create false \
 EXPOSE 80
 
 # Set the working directory in the container to /app
-WORKDIR /app/app
+WORKDIR /app/src/youtube_web_downloader
 
 # Run app.py when the container launches
 #CMD ["tail","-f", "/dev/null"]
