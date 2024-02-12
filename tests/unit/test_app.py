@@ -19,10 +19,10 @@ def test_download_submit_buttons( mock_download_audio: MagicMock,mock_download_v
     from youtube_web_downloader.app.app import app
     app.testing = True
     client = app.test_client()
-    
+    youtube_url = 'https://www.youtube.com/watch?v=eFyc1g_6ffs'
     # Act
     with app.test_request_context():
-        response = client.post('/', data={'url': 'https://www.youtube.com/watch?v=eFyc1g_6ffs', 'video': 'Download Video', 'csrf_token': generate_csrf()}, content_type='multipart/form-data')
+        response = client.post('/', data={'url': youtube_url , 'video': 'Download Video', 'csrf_token': generate_csrf()}, content_type='multipart/form-data')
 
     # Assert
     mock_download_video.assert_called_once()  # Check that the mock function was called
@@ -35,11 +35,13 @@ def test_download_submit_buttons( mock_download_audio: MagicMock,mock_download_v
 
     #Act download audio
     with app.test_request_context():
-        response = client.post('/', data={'url': 'https://www.youtube.com/watch?v=eFyc1g_6ffs', 'audio': 'Download Audio', 'csrf_token': generate_csrf()}, content_type='multipart/form-data')
+        response = client.post('/', data={'url': youtube_url, 'audio': 'Download Audio', 'csrf_token': generate_csrf()}, content_type='multipart/form-data')
 
-    #Assert
-    mock_download_audio.assert_called_once()
-    mock_download_video.assert_not_called()
+    # Assert
+    assert response.status_code == 302
+    assert response.location == f'/set_track_info?url={youtube_url.replace("=", "%3D")}'
+
+    
     
 
 @patch('os.environ',{'DOWNLOAD_FOLDER_PATH': './test_downloads', 'SECRET_KEY': 'test_secret'})
@@ -80,7 +82,7 @@ def test_download_audio(mock_youtube: MagicMock, mock_audio_segment: MagicMock):
     url = 'https://www.youtube.com/watch?v=eFyc1g_6ffs'
     # Test case 1: DOWNLOAD_FOLDER_PATH environment variable is set
     # Act
-    download_audio(url)
+    download_audio(url,"Test","Tchoupi")
 
     # Assert
     mock_youtube.assert_called_once_with(url)
@@ -94,8 +96,131 @@ def test_download_audio(mock_youtube: MagicMock, mock_audio_segment: MagicMock):
 
     # Act
     with patch('os.environ', {'DOWNLOAD_FOLDER_PATH': ''}):
-        response = download_audio(url)
+        response = download_audio(url,"Test","Tchoupi")
 
     # Assert
     assert response == 'DOWNLOAD_FOLDER_PATH environment variable is not set'
 
+@patch('youtube_web_downloader.app.app.download_audio')
+@patch('youtube_web_downloader.app.app.YouTube')
+def test_set_track_info_1(mock_youtube: MagicMock, mock_download_audio: MagicMock):
+    from youtube_web_downloader.app.app import app
+    
+    app.testing = True
+    
+    client = app.test_client()
+    youtube_url = 'https://www.youtube.com/watch?v=eFyc1g_6ffs'
+    
+    mock_youtube.return_value.title = 'Tchoupi - Test'
+    mock_youtube.return_value.author = 'Hej'
+
+
+    # Test case 1: GET request
+    with app.test_request_context():
+        response = client.get(f'/set_track_info?url={youtube_url}')
+        print(client._cookies)
+
+    
+    assert response.status_code == 200
+    assert b'<title>Set Track Info</title>' in response.data
+    assert b'<form method="POST">' in response.data
+    
+    assert b'<input id="track_name" name="track_name" required size="20" type="text" value="Test">' in response.data
+    assert b'<input id="artist_name" name="artist_name" required size="20" type="text" value="Tchoupi">' in response.data
+    mock_download_audio.assert_not_called()
+@patch('youtube_web_downloader.app.app.download_audio')
+@patch('youtube_web_downloader.app.app.YouTube')
+def test_set_track_info_2(mock_youtube: MagicMock, mock_download_audio: MagicMock):
+    from youtube_web_downloader.app.app import app
+    
+    app.testing = True
+    app.config['WTF_CSRF_ENABLED'] = False      #TODO: Fix this, looks like only testing-problem
+    client = app.test_client()
+    print(client._cookies)
+    youtube_url = 'https://www.youtube.com/watch?v=eFyc1g_6ffs'
+    
+    mock_youtube.return_value.title = 'Tchoupi - Test'
+    mock_youtube.return_value.author = 'Hej'
+
+    # Test case 2: POST request
+    mock_download_audio.reset_mock()
+    with app.test_request_context():
+        data={'track_name': 'Test', 'artist_name': 'Tchoupi', 'csrf_token': generate_csrf(),"url":youtube_url}
+
+        #response = client.get(f'/set_track_info?url={youtube_url}')
+        response = client.post(f'/set_track_info', data=data, content_type='multipart/form-data')
+        print(client._cookies)
+        #response = client.post('/set_track_info', data={'url': youtube_url, 'audio': 'Download Audio', 'csrf_token': generate_csrf()}, content_type='multipart/form-data')
+
+
+    assert response.status_code == 200
+    mock_download_audio.assert_called_once_with(youtube_url, 'Test', 'Tchoupi')
+    
+
+
+
+def test_trackform():
+    from youtube_web_downloader.app.app import TrackForm
+    from youtube_web_downloader.app.app import app
+    app.testing = True
+    client = app.test_client()
+    
+
+    #Test case 1: Track name contains the word 'Tchoupi'
+    with app.test_request_context():
+        form = TrackForm()
+        form.add_title(track_name='Tchoupi - Test', channel='Tchoupi')
+
+    assert form.artist_name.default == 'Tchoupi'
+    assert form.track_name.default == 'Test'
+
+
+
+    #Test case 2: Track name does not contain the word 'Tchoupi'
+    with app.test_request_context():
+        form = TrackForm()
+        form.add_title(track_name='Test', channel='Tchoupi')
+
+    assert form.artist_name.default == 'Tchoupi'
+    assert form.track_name.default == 'Test'
+
+    #Test case 3: Track names contains word 'TchOupi'
+    with app.test_request_context():
+        form = TrackForm()
+        form.add_title(track_name='TchOupi - Test', channel='Tchoupi')
+    
+    assert form.artist_name.default == 'Tchoupi'
+    assert form.track_name.default == 'Test'
+
+    #Test case 4: Track name is empty
+    with app.test_request_context():
+        form = TrackForm()
+        form.add_title(track_name='', channel='Something Unknown')
+
+    assert form.artist_name.default == 'Something Unknown'
+    assert form.track_name.default == 'Unknown'
+
+    #Test case 5: Channel is empty
+    with app.test_request_context():
+        form = TrackForm()
+        form.add_title(track_name='Test', channel='')
+        
+    assert form.artist_name.default == 'Unknown'
+    assert form.track_name.default == 'Test'
+
+    #Test case 6: Both track name and channel are empty
+    with app.test_request_context():
+        form = TrackForm()
+        form.add_title(track_name='', channel='')
+
+    assert form.artist_name.default == 'Unknown'
+    assert form.track_name.default == 'Unknown'
+
+    #Test case 7: ' in T'choupi
+    with app.test_request_context():
+        form = TrackForm()
+        form.add_title(track_name="T'choupi - Test", channel='Tchoupi')
+
+    assert form.artist_name.default == 'Tchoupi'
+    assert form.track_name.default == 'Test'
+    

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Set Track Info</title>
+</head>
+<body>
+    <h1>Set Track Info</h1>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.track_name.label }}<br>
+            {{ form.track_name(size=20) }}
+        </p>
+        <p>
+            {{ form.artist_name.label }}<br>
+            {{ form.artist_name(size=20) }}
+        </p>
+        <p>{{ form.submit() }}</p>
+    </form>
+</body>
+</html>
