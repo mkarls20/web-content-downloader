@@ -24,10 +24,10 @@ RUN poetry config virtualenvs.create false \
 EXPOSE 80
 
 # Set the working directory in the container to /app
-WORKDIR /app/src/youtube_web_downloader
+WORKDIR /app/src
 
 # Run app.py when the container launches
 #CMD ["tail","-f", "/dev/null"]
 
 #CMD ["poetry","run", "python", "app.py"]
-CMD ["poetry", "run", "gunicorn", "-b", "0.0.0.0:80", "app:app"]
+CMD ["poetry", "run", "gunicorn", "-b", "0.0.0.0:80", "youtube_web_downloader:app:app"]
