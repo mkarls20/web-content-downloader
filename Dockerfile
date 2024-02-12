@@ -18,7 +18,7 @@ ADD . /app
 
 # Install dependencies using Poetry
 RUN poetry config virtualenvs.create false \
-  && poetry install --no-interaction --no-ansi --no-dev
+  && poetry install --no-interaction --no-ansi --only main
 
 # Make port 80 available to the world outside this container
 EXPOSE 80
