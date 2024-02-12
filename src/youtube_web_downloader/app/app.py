@@ -6,6 +6,8 @@ import os
 from pydub import AudioSegment
 from wtforms.validators import DataRequired
 import re
+from pydub import AudioSegment
+from tinytag import TinyTag
 
 app = Flask(__name__)
 
@@ -91,7 +93,16 @@ def download_audio(url, track_name, artist_name):
     # Convert audio to MP3 format
     audio_file = AudioSegment.from_file(audio_path)
     mp3_path = os.path.splitext(audio_path)[0] + '.mp3'
-    audio_file.export(mp3_path, format='mp3')
+    
+    # Set title, artist, and art metadata
+    audio_file.export(mp3_path, format='mp3', tags={'title': track_name, 'artist': artist_name, 'art': yt.thumbnail_url})
+    
+    # # Update metadata using TinyTag
+    # tag = TinyTag.get(mp3_path)
+    # tag.title = track_name
+    # tag.artist = artist_name
+    
+    # tag.save()
     
     return f'Audio downloaded and encoded as MP3. Track Name: {track_name}, Artist Name: {artist_name}'
 
@@ -108,9 +119,6 @@ def set_track_info():
     form.add_title(yt.title, yt.author)
     form.set_url(url)
     
-    print(form.is_submitted())
-    print(form.validate())
-    print(form.errors)
     if form.validate_on_submit():
         return download_audio(url, form.track_name.data, form.artist_name.data)
     return render_template('set_track_info.html', form=form)

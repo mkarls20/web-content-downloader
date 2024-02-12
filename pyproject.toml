@@ -16,6 +16,7 @@ flask = "^3.0.2"
 flask-wtf = "^1.2.1"
 gunicorn = "^21.2.0"
 pydub = "^0.25.1"
+tinytag = "^1.10.1"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.8.0"
