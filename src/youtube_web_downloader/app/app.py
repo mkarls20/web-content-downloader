@@ -14,7 +14,6 @@ app = Flask(__name__)
 #load_dotenv(".env.dev")
 if "DOWNLOAD_FOLDER_PATH" not in os.environ:
     os.environ['DOWNLOAD_FOLDER_PATH'] = './downloads'
-
 if "SECRET_KEY" not in os.environ:
     os.environ['SECRET_KEY'] = "secret"
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
@@ -24,19 +23,22 @@ class DownloadForm(FlaskForm):
     video = SubmitField('Download Video')
     audio = SubmitField('Download Audio')
 
+
 @app.route('/', methods=['GET', 'POST'])
 def home():
     form = DownloadForm()
     if form.validate_on_submit():
         if form.video.data:
+            print("hej")
             return download_video(form.url.data)
         elif form.audio.data:
             return download_audio(form.url.data)
     return render_template('home.html', form=form)
+    
 
 def download_audio(url):
     folder_path = os.getenv('DOWNLOAD_FOLDER_PATH') + "/audio"
-    if not folder_path:
+    if folder_path == "/audio":
         return 'DOWNLOAD_FOLDER_PATH environment variable is not set'
     
     yt = YouTube(url)
@@ -52,7 +54,7 @@ def download_audio(url):
 
 def download_video(url):
     folder_path = os.getenv('DOWNLOAD_FOLDER_PATH') + "/video"
-    if not folder_path:
+    if folder_path == "/video":
         return 'DOWNLOAD_FOLDER_PATH environment variable is not set'
     
     yt = YouTube(url)
@@ -61,7 +63,7 @@ def download_video(url):
     return 'Video downloaded'
 
 if __name__ == '__main__':
-    #app.run(debug=True)
-    download_audio('https://www.youtube.com/watch?v=eFyc1g_6ffs')
+    app.run(debug=True)
+    #download_audio('https://www.youtube.com/watch?v=eFyc1g_6ffs')
 
     

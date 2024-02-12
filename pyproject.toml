@@ -1,3 +1,5 @@
+
+
 [tool.poetry]
 name = "youtube-web-downloader"
 version = "0.1.0"
@@ -5,7 +7,7 @@ description = "\"Flask web application to download YouTube videos\""
 authors = ["Mårten <125393136+mkarls20@users.noreply.github.com>"]
 license = "MIT"
 readme = "README.md"
-packages = [{include = "youtube-web-downloader", from = "src"}]
+packages = [{include = "youtube_web_downloader", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.8 || ^3.9 || ^3.10 || ^3.11 || ^3.12"
@@ -19,7 +21,67 @@ pydub = "^0.25.1"
 mypy = "^1.8.0"
 ruff = "^0.2.1"
 black = "^24.1.1"
+[tool.poetry.group.test.dependencies]
 pytest = "^8.0.0"
+pytest-mock = "^3.12.0"
+pytest-cov = "^4.1.0"
+
+
+[tool.pytest.ini_options]
+pythonpath = [
+    "src",
+]
+testpaths = [
+    "tests",
+]
+addopts = [
+    "--cov",
+    "--cov-config=pyproject.toml",
+    "--import-mode=importlib",
+    "-ra"
+]
+norecursedirs = "__pycache__"
+
+[tool.coverage.run]
+source = [
+    "src",
+]
+ omit = [
+    "*/__init__.py",
+    "*/__main__.py",
+    "*/__about__.py",
+    "*/__version__.py",
+    "*/_version.py",
+    "*/_about.py",
+    "*/_main.py",
+    "*/_cli.py",
+    "*/_config.py",
+    "*/_settings.py",
+    "*/_defaults.py",
+    "*/_constants.py",
+    "*/_utils.py",
+    "*/_compat.py",
+    "*/_types.py",
+    "*/_exceptions.py",
+    "*/_errors.py",
+    "*/_warnings.py",
+    "*/_logging.py",
+    "*/_log.py",
+    "*/_logger.py",
+    "*/_loggers.py",
+    "*/test_*.py",
+]
+
+[tool.coverage.report]
+fail_under = 90
+show_missing = true
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug",
+    "if settings.debug",
+    "if __name__ == .__main__.:",
+]
 
 
 
