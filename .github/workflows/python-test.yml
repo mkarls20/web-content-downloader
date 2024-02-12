@@ -30,7 +30,7 @@ jobs:
       uses: Gr1N/setup-poetry@v8
     - name: Install dependencies
       run: |
-        poetry install --only=TEST
+        poetry install --only=test
     - uses: actions/cache@v2
       with:
         path: ~/.cache/pypoetry/virtualenvs
