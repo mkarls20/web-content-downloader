@@ -37,4 +37,4 @@ jobs:
         key: ${{ runner.os }}-poetry-${{ hashFiles('poetry.lock') }}    
     - name: Test with pytest
       run: |
-        pytest
+        poetry run pytest
