@@ -1,0 +1,43 @@
+<head>
+    <style>
+        table {
+            width: 100%;
+            table-layout: fixed;
+            border-collapse: collapse;
+        }
+
+        table th, table td {
+            text-align: left;
+            padding: 10px;
+            overflow-wrap: break-word;
+            border: 1px solid black;
+        }
+    </style>
+
+</head>
+<body>
+    <table>
+<thead>
+    <tr>
+        <th>Artist</th>
+        <th>Album</th>
+        <th>Title</th>
+        <th>Type</th>
+        <th>Re-download</th>
+        <th>Delete</th>
+    </tr>
+</thead>
+<tbody>
+    {% for url, details in prev_downloads.items() %}
+    <tr>
+        <td>{{ details['artist'] }}</td>
+        <td>{{ details['album'] }}</td>
+        <td>{{ details['title'] }}</td>
+        <td>{{ details['type'] }}</td>
+        <td><a href="{{ url_for('re_download') }}?url={{ url }}">Re-download</a></td>
+        <td><a href="{{ url_for('delete') }}?url={{ url }}">Delete</a></td>
+    </tr>
+    {% endfor %}
+</tbody>
+</table>
+</body>

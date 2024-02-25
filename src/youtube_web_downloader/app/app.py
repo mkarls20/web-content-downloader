@@ -1,3 +1,4 @@
+import pickle
 from flask import Flask, redirect, render_template, request, url_for
 from flask_wtf import FlaskForm
 from wtforms import HiddenField, StringField, SubmitField
@@ -90,6 +91,23 @@ def home():
             return redirect(url_for('set_track_info', url=form.url.data))
     return render_template('home.html', form=form)
     
+@app.route('/previous_downloads', methods=['GET'])
+def previous_downloads():
+    prev_downloads = load_prev_downloads()
+    return render_template('previous_downloads.html', prev_downloads=prev_downloads)
+
+@app.route('/re_download', methods=['GET'])
+def re_download():
+    url = request.args.get('url')
+    # Add your re-download logic here using the 'url' parameter
+    return 'Re-download successful'
+
+@app.route('/delete', methods=['GET'])
+def delete():
+    file_path = request.args.get('file_path')
+    # Add your delete logic here using the 'url' and 'file_path' parameters
+    return 'Delete successful'
+
 def download_audio(url, track_name, artist_name, album_name):
     folder_path = os.getenv('DOWNLOAD_FOLDER_PATH') + "/audio"
     if folder_path == "/audio":
@@ -105,13 +123,7 @@ def download_audio(url, track_name, artist_name, album_name):
     
     # Set title, artist, and art metadata
     audio_file.export(mp3_path, format='mp3', tags={'title': track_name, 'artist': artist_name, 'album': album_name})
-    
-    # # Update metadata using TinyTag
-    # tag = TinyTag.get(mp3_path)
-    # tag.title = track_name
-    # tag.artist = artist_name
-    
-    # tag.save()
+    add_to_prev_downloads(url, mp3_path, yt.author, yt.title, yt.video_id, 'audio')
     
     return f'Audio downloaded and encoded as MP3. Track Name: {track_name}, Artist Name: {artist_name}'
 
@@ -133,6 +145,21 @@ def set_track_info():
         return download_audio(url, form.track_name.data, form.artist_name.data,form.album_name.data)
     return render_template('set_track_info.html', form=form)
 
+def load_prev_downloads():
+    folder_path = os.getenv('DOWNLOAD_FOLDER_PATH')
+    try:
+        with open(folder_path + 'downloads.pkl', 'rb') as f:
+            prev_downloads = pickle.load(f)
+    except FileNotFoundError:
+        prev_downloads = {}
+    return prev_downloads
+
+def add_to_prev_downloads(url, file_path,artist,album,title,type):
+    folder_path = os.getenv('DOWNLOAD_FOLDER_PATH')
+    prev_downloads = load_prev_downloads()
+    prev_downloads[url] = {'file_path': file_path, 'artist': artist, 'album': album, 'title': title, 'type': type}
+    pickle.dump(prev_downloads, open(folder_path + 'downloads.pkl', 'wb'))
+
 def download_video(url):
     folder_path = os.getenv('DOWNLOAD_FOLDER_PATH') + "/video"
     if folder_path == "/video":
@@ -141,6 +168,7 @@ def download_video(url):
     yt = YouTube(url)
     video = yt.streams.get_highest_resolution()
     video.download(output_path=folder_path)
+    add_to_prev_downloads(url, folder_path + '/' + yt.video_id + '.mp4', yt.author, yt.title, yt.video_id, 'video')
     return 'Video downloaded'
 
 if __name__ == '__main__':
