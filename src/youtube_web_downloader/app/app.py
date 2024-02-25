@@ -31,6 +31,7 @@ class TrackForm(FlaskForm):
     url = HiddenField('YouTube URL', validators=[DataRequired()])
     track_name = StringField('Track Name', validators=[DataRequired()])
     artist_name = StringField('Artist Name', validators=[DataRequired()])
+    album_name = StringField('Album Name')
     submit = SubmitField('Submit')
     def set_url(self, url):
         self.url.data = url
@@ -69,6 +70,12 @@ class TrackForm(FlaskForm):
         # Set the data attribute instead of calling process()
         self.artist_name.data = self.artist_name.default
         self.track_name.data = self.track_name.default
+
+    def set_album_name(self):
+        if self.artist_name.data:
+            self.album_name.default = self.artist_name.data
+        else:
+            self.album_name.default = "Unknown" 
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
@@ -117,10 +124,11 @@ def set_track_info():
     yt = YouTube(url)
     
     form.add_title(yt.title, yt.author)
+    form.set_album_name()
     form.set_url(url)
     
     if form.validate_on_submit():
-        return download_audio(url, form.track_name.data, form.artist_name.data)
+        return download_audio(url, form.track_name.data, form.artist_name.data,form.album_name.data)
     return render_template('set_track_info.html', form=form)
 
 def download_video(url):
