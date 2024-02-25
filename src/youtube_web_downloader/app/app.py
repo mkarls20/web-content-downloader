@@ -116,6 +116,24 @@ def delete():
 
     return redirect(url_for('previous_downloads'))
 
+    
+@app.route('/previous_downloads', methods=['GET'])
+def previous_downloads():
+    prev_downloads = load_prev_downloads()
+    return render_template('previous_downloads.html', prev_downloads=prev_downloads)
+
+@app.route('/re_download', methods=['GET'])
+def re_download():
+    url = request.args.get('url')
+    # Add your re-download logic here using the 'url' parameter
+    return 'Re-download successful'
+
+@app.route('/delete', methods=['GET'])
+def delete():
+    file_path = request.args.get('file_path')
+    # Add your delete logic here using the 'url' and 'file_path' parameters
+    return 'Delete successful'
+
 def download_audio(url, track_name, artist_name, album_name):
     folder_path = os.getenv('DOWNLOAD_FOLDER_PATH') + "/audio"
     if folder_path == "/audio":
