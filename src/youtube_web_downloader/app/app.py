@@ -72,10 +72,12 @@ class TrackForm(FlaskForm):
         self.track_name.data = self.track_name.default
 
     def set_album_name(self):
+        print("Running set_album_name")
+        print(self.artist_name.data)
         if self.artist_name.data:
-            self.album_name.default = self.artist_name.data
-        else:
-            self.album_name.default = "Unknown" 
+            self.album_name.data = self.artist_name.data
+        
+        self.album_name.default = "Unknown" 
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
