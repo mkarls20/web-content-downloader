@@ -88,7 +88,7 @@ def home():
             return redirect(url_for('set_track_info', url=form.url.data))
     return render_template('home.html', form=form)
     
-def download_audio(url, track_name, artist_name):
+def download_audio(url, track_name, artist_name, album_name):
     folder_path = os.getenv('DOWNLOAD_FOLDER_PATH') + "/audio"
     if folder_path == "/audio":
         return 'DOWNLOAD_FOLDER_PATH environment variable is not set'
@@ -102,7 +102,7 @@ def download_audio(url, track_name, artist_name):
     mp3_path = os.path.splitext(audio_path)[0] + '.mp3'
     
     # Set title, artist, and art metadata
-    audio_file.export(mp3_path, format='mp3', tags={'title': track_name, 'artist': artist_name, 'art': yt.thumbnail_url})
+    audio_file.export(mp3_path, format='mp3', tags={'title': track_name, 'artist': artist_name, 'album': album_name})
     
     # # Update metadata using TinyTag
     # tag = TinyTag.get(mp3_path)
