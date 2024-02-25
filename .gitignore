@@ -167,6 +167,7 @@ cython_debug/
 dev_download_folder/
 app/downloads/
 *.mp4
+*.pkl
 *.mp3
 
 

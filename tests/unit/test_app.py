@@ -2,6 +2,7 @@
 import os
 from unittest.mock import patch, MagicMock
 from flask_wtf.csrf import generate_csrf
+from flask import url_for
 
 
 def test_home_page():
@@ -46,7 +47,9 @@ def test_download_submit_buttons( mock_download_audio: MagicMock,mock_download_v
 
 @patch('os.environ',{'DOWNLOAD_FOLDER_PATH': './test_downloads', 'SECRET_KEY': 'test_secret'})
 @patch('youtube_web_downloader.app.app.YouTube')
-def test_download_video(mock_youtube):
+@patch('youtube_web_downloader.app.app.pickle')
+@patch('youtube_web_downloader.app.app.open')
+def test_download_video(mock_open,mock_pickle,mock_youtube):
     from youtube_web_downloader.app.app import download_video
     
     url = 'https://www.youtube.com/watch?v=eFyc1g_6ffs'
@@ -57,7 +60,7 @@ def test_download_video(mock_youtube):
     # Assert
     mock_youtube.assert_called_once_with(url)  # Check that the mock YouTube object was called with the URL
     mock_youtube.return_value.streams.get_highest_resolution().download.assert_called_once_with(output_path='./test_downloads/video')  # Check that the download function was called with the correct output path
-
+    mock_pickle.dump.assert_called_once()
     # Test case 2: DOWNLOAD_FOLDER_PATH environment variable is not set
     #Reset mocks
     mock_youtube.reset_mock()
@@ -70,9 +73,11 @@ def test_download_video(mock_youtube):
     assert response == 'DOWNLOAD_FOLDER_PATH environment variable is not set'
 
 @patch('os.environ',{'DOWNLOAD_FOLDER_PATH': './test_downloads', 'SECRET_KEY': 'test_secret'})
+@patch('youtube_web_downloader.app.app.open')
+@patch('youtube_web_downloader.app.app.pickle')
 @patch('youtube_web_downloader.app.app.AudioSegment')
 @patch('youtube_web_downloader.app.app.YouTube')
-def test_download_audio(mock_youtube: MagicMock, mock_audio_segment: MagicMock):
+def test_download_audio(mock_youtube: MagicMock, mock_audio_segment: MagicMock, mock_pickle: MagicMock,mock_open: MagicMock):
     from youtube_web_downloader.app.app import download_audio
     #Setup mocks
     mock_youtube.return_value.streams.filter.return_value.first.return_value.download.return_value = './test_downloads/audio/audio.mp4'
@@ -89,7 +94,7 @@ def test_download_audio(mock_youtube: MagicMock, mock_audio_segment: MagicMock):
     mock_youtube.return_value.streams.filter(only_audio=True).first().download.assert_called_once_with(output_path='./test_downloads/audio')
     mock_audio_segment.from_file.assert_called_once_with('./test_downloads/audio/audio.mp4')
     mock_audio_segment.from_file.return_value.export.assert_called_once_with('./test_downloads/audio/audio.mp3', format='mp3', tags={'title': 'Test', 'artist': 'Tchoupi', 'album': 'Unknown'})
-
+    mock_pickle.dump.assert_called_once()
     # Test case 2: DOWNLOAD_FOLDER_PATH environment variable is not set
     #Reset mocks
     mock_youtube.reset_mock()
@@ -223,4 +228,71 @@ def test_trackform():
 
     assert form.artist_name.default == 'Tchoupi'
     assert form.track_name.default == 'Test'
+    import pytest
+
+@patch('youtube_web_downloader.app.app.render_template')
+@patch('youtube_web_downloader.app.app.load_prev_downloads')
+def test_previous_downloads(mock_load_prev_downloads: MagicMock, render_template: MagicMock):
+    from youtube_web_downloader.app.app import app
+    app.testing = True
+    client = app.test_client()
+
+    # Set the return value of the mock function
+    mock_load_prev_downloads.return_value = ['download1', 'download2', 'download3']
+    
+    # Call the previous_downloads function
+    with app.test_request_context():
+        client.get('/previous_downloads')
+    
+    # Assert that the render_template function was called with the correct arguments
+    render_template.assert_called_once_with('previous_downloads.html', prev_downloads=['download1', 'download2', 'download3'])
+    
+#from youtube_web_downloader.app.app import delete, load_prev_downloads
+
+
+@patch('youtube_web_downloader.app.app.open',MagicMock())
+@patch('youtube_web_downloader.app.app.load_prev_downloads')
+@patch('youtube_web_downloader.app.app.pickle.dump')
+@patch('youtube_web_downloader.app.app.os.remove')
+@patch('youtube_web_downloader.app.app.redirect')
+def test_delete(mock_redirect: MagicMock ,mock_remove: MagicMock, mock_dump: MagicMock, mock_load_prev_downloads: MagicMock):
+    from youtube_web_downloader.app.app import app
+
+    app.testing = True
+    client = app.test_client()
+
+
+
+
+    # Arrange
+    file_path = 'path/to/file'
+    url = 'https://www.youtube.com/watch?v=eFyc1g_6ffs'
+    prev_downloads = {url: 'downloaded_file.mp4'}
+    mock_load_prev_downloads.return_value = prev_downloads
+    download_folder_path= '/path/to/downloads/'
+    
+
+    # Test 1: DOWNLOAD_FOLDER_PATH environment variable is set
+    # Act
+    with app.test_request_context() ,patch.dict(os.environ, {'DOWNLOAD_FOLDER_PATH': download_folder_path}):
+        response = client.get(f'/delete?url={url}&file_path={file_path}')
+        redirect_url = url_for('previous_downloads')
+        
+
+    # Assert
+    mock_load_prev_downloads.assert_called_once()
+    mock_remove.assert_called_once_with(download_folder_path+file_path)
+    mock_dump.assert_called_once()
+    
+    mock_redirect.assert_called_once_with(redirect_url)
+    
+    
+
+
+    # Test 2: DOWNLOAD_FOLDER_PATH environment variable is not set
+    # Act
+    with app.test_request_context(), patch.dict(os.environ, {'DOWNLOAD_FOLDER_PATH': ''}):
+        response = client.get(f'/delete?url={url}&file_path={file_path}')
+
+    assert response.text == 'DOWNLOAD_FOLDER_PATH environment variable is not set'
     
