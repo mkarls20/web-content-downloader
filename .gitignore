@@ -161,8 +161,13 @@ cython_debug/
 
 # VScode
 .vscode/
+*.code-workspace
 
 #Downloaded data
 dev_download_folder/
 app/downloads/
 *.mp4
+*.mp3
+
+
+
