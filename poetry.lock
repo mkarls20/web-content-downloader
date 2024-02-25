@@ -568,6 +568,20 @@ files = [
 ]
 
 [[package]]
+name = "tinytag"
+version = "1.10.1"
+description = "Read music meta data and length of MP3, OGG, OPUS, MP4, M4A, FLAC, WMA and Wave files"
+optional = false
+python-versions = ">=2.7"
+files = [
+    {file = "tinytag-1.10.1-py3-none-any.whl", hash = "sha256:e437654d04c966fbbbdbf807af61eb9759f1d80e4173a7d26202506b37cfdaf0"},
+    {file = "tinytag-1.10.1.tar.gz", hash = "sha256:122a63b836f85094aacca43fc807aaee3290be3de17d134f5f4a08b509ae268f"},
+]
+
+[package.extras]
+tests = ["flake8", "pytest", "pytest-cov"]
+
+[[package]]
 name = "tomli"
 version = "2.0.1"
 description = "A lil' TOML parser"
@@ -641,4 +655,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8 || ^3.9 || ^3.10 || ^3.11 || ^3.12"
-content-hash = "c4a200febf4ae6b2a5f8978a27250d583d35e0df49e471c775e1fe3cca4ab932"
+content-hash = "be779ba8e788c511bc29d83ccbd1f426102a2051f914749657eb76a8c773492f"
