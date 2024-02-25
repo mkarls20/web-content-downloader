@@ -96,17 +96,25 @@ def previous_downloads():
     prev_downloads = load_prev_downloads()
     return render_template('previous_downloads.html', prev_downloads=prev_downloads)
 
-@app.route('/re_download', methods=['GET'])
-def re_download():
-    url = request.args.get('url')
-    # Add your re-download logic here using the 'url' parameter
-    return 'Re-download successful'
 
 @app.route('/delete', methods=['GET'])
 def delete():
-    file_path = request.args.get('file_path')
-    # Add your delete logic here using the 'url' and 'file_path' parameters
-    return 'Delete successful'
+    downloads_folder = os.getenv('DOWNLOAD_FOLDER_PATH')
+    if not downloads_folder:
+        return 'DOWNLOAD_FOLDER_PATH environment variable is not set'
+    file_path = downloads_folder + request.args.get('file_path')
+    url = request.args.get('url')
+    prev_downloads = load_prev_downloads()
+    if url in prev_downloads:
+        del prev_downloads[url]
+        pickle.dump(prev_downloads, open(os.getenv('DOWNLOAD_FOLDER_PATH') + 'downloads.pkl', 'wb'))
+    try:
+        os.remove(file_path)
+    except FileNotFoundError:
+        print(f'File {file_path} not found')
+        pass
+
+    return redirect(url_for('previous_downloads'))
 
 def download_audio(url, track_name, artist_name, album_name):
     folder_path = os.getenv('DOWNLOAD_FOLDER_PATH') + "/audio"

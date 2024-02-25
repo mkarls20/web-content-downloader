@@ -34,8 +34,8 @@
         <td>{{ details['album'] }}</td>
         <td>{{ details['title'] }}</td>
         <td>{{ details['type'] }}</td>
-        <td><a href="{{ url_for('re_download') }}?url={{ url }}">Re-download</a></td>
-        <td><a href="{{ url_for('delete') }}?url={{ url }}">Delete</a></td>
+        <td><a href="{{ url_for('set_track_info') }}?url={{ url }}">Re-download</a></td>
+        <td><a href="{{ url_for('delete') }}?url={{ url }}&file_path={{ details['file_path'] }}">Delete</a></td>
     </tr>
     {% endfor %}
 </tbody>
