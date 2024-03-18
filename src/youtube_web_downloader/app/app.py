@@ -7,33 +7,35 @@ import os
 from pydub import AudioSegment
 from wtforms.validators import DataRequired
 import re
+from dotenv import load_dotenv
 
 app = Flask(__name__)
 
 
-from dotenv import load_dotenv
-
-
 load_dotenv(".env.dev")
 if "DOWNLOAD_FOLDER_PATH" not in os.environ:
-    os.environ['DOWNLOAD_FOLDER_PATH'] = './downloads'
+    os.environ["DOWNLOAD_FOLDER_PATH"] = "./downloads"
 if "SECRET_KEY" not in os.environ:
-    os.environ['SECRET_KEY'] = "secret"
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+    os.environ["SECRET_KEY"] = "secret"
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
+
 
 class DownloadForm(FlaskForm):
-    url = StringField('YouTube URL')
-    video = SubmitField('Download Video')
-    audio = SubmitField('Download Audio')
+    url = StringField("YouTube URL")
+    video = SubmitField("Download Video")
+    audio = SubmitField("Download Audio")
+
 
 class TrackForm(FlaskForm):
-    url = HiddenField('YouTube URL', validators=[DataRequired()])
-    track_name = StringField('Track Name', validators=[DataRequired()])
-    artist_name = StringField('Artist Name', validators=[DataRequired()])
-    album_name = StringField('Album Name')
-    submit = SubmitField('Submit')
+    url = HiddenField("YouTube URL", validators=[DataRequired()])
+    track_name = StringField("Track Name", validators=[DataRequired()])
+    artist_name = StringField("Artist Name", validators=[DataRequired()])
+    album_name = StringField("Album Name")
+    submit = SubmitField("Submit")
+
     def set_url(self, url):
         self.url.data = url
+
     def add_title(self, track_name, channel):
         """
         Adds a title to the application.
@@ -54,12 +56,14 @@ class TrackForm(FlaskForm):
             track_name = re.split(regexp, track_name, 1)[-1].strip()
             self.track_name.default = re.sub(r"^[^\w]+", "", track_name)
             # Capitalize the first letter of the track name
-            self.track_name.default = self.track_name.default[0].upper() + self.track_name.default[1:]
+            self.track_name.default = (
+                self.track_name.default[0].upper() + self.track_name.default[1:]
+            )
         else:
             # If the track name does not match the pattern
             self.artist_name.default = channel
             self.track_name.default = track_name
-        
+
         # Set default values for artist name and track name if they are empty
         if not self.artist_name.default:
             self.artist_name.default = "Unknown"
@@ -75,10 +79,11 @@ class TrackForm(FlaskForm):
         print(self.artist_name.data)
         if self.artist_name.data:
             self.album_name.data = self.artist_name.data
-        
-        self.album_name.default = "Unknown" 
 
-@app.route('/', methods=['GET', 'POST'])
+        self.album_name.default = "Unknown"
+
+
+@app.route("/", methods=["GET", "POST"])
 def home():
     form = DownloadForm()
     if form.validate_on_submit():
@@ -86,108 +91,133 @@ def home():
             print("hej")
             return download_youtube_video(form.url.data)
         elif form.audio.data:
-            return redirect(url_for('set_track_info', url=form.url.data))
-    return render_template('home.html', form=form)
-    
-@app.route('/previous_downloads', methods=['GET'])
+            return redirect(url_for("set_track_info", url=form.url.data))
+    return render_template("home.html", form=form)
+
+
+@app.route("/previous_downloads", methods=["GET"])
 def previous_downloads():
     prev_downloads = load_prev_downloads()
-    return render_template('previous_downloads.html', prev_downloads=prev_downloads)
+    return render_template("previous_downloads.html", prev_downloads=prev_downloads)
 
-    
 
-@app.route('/delete', methods=['GET'])
+@app.route("/delete", methods=["GET"])
 def delete():
-    downloads_folder = os.getenv('DOWNLOAD_FOLDER_PATH')
+    downloads_folder = os.getenv("DOWNLOAD_FOLDER_PATH")
     if not downloads_folder:
-        return 'DOWNLOAD_FOLDER_PATH environment variable is not set'
-    file_path = downloads_folder + request.args.get('file_path')
-    url = request.args.get('url')
+        return "DOWNLOAD_FOLDER_PATH environment variable is not set"
+    file_path = downloads_folder + request.args.get("file_path")
+    url = request.args.get("url")
     prev_downloads = load_prev_downloads()
     if url in prev_downloads:
         del prev_downloads[url]
-        pickle.dump(prev_downloads, open(os.getenv('DOWNLOAD_FOLDER_PATH') + 'downloads.pkl', 'wb'))
+        pickle.dump(
+            prev_downloads,
+            open(os.getenv("DOWNLOAD_FOLDER_PATH") + "downloads.pkl", "wb"),
+        )
     try:
         os.remove(file_path)
     except FileNotFoundError:
-        print(f'File {file_path} not found')
+        print(f"File {file_path} not found")
         pass
 
-    return redirect(url_for('previous_downloads'))
+    return redirect(url_for("previous_downloads"))
 
 
 def download_youtube_audio(url, track_name, artist_name, album_name):
-    folder_path = os.getenv('DOWNLOAD_FOLDER_PATH') + "/audio"
+    folder_path = os.getenv("DOWNLOAD_FOLDER_PATH") + "/audio"
     if folder_path == "/audio":
-        return 'DOWNLOAD_FOLDER_PATH environment variable is not set'
-    
+        return "DOWNLOAD_FOLDER_PATH environment variable is not set"
+
     yt = YouTube(url)
     audio = yt.streams.filter(only_audio=True).first()
     audio_path = audio.download(output_path=folder_path)
-    
+
     # Convert audio to MP3 format
     audio_file = AudioSegment.from_file(audio_path)
-    mp3_path = os.path.splitext(audio_path)[0] + '.mp3'
-    
-    # Set title, artist, and art metadata
-    audio_file.export(mp3_path, format='mp3', tags={'title': track_name, 'artist': artist_name, 'album': album_name})
-    add_to_prev_downloads(url, mp3_path, yt.author, yt.title, yt.video_id, 'audio')
-    
-    return f'Audio downloaded and encoded as MP3. Track Name: {track_name}, Artist Name: {artist_name}'
+    mp3_path = os.path.splitext(audio_path)[0] + ".mp3"
 
-@app.route('/set_track_info', methods=['GET', 'POST'])
+    # Set title, artist, and art metadata
+    audio_file.export(
+        mp3_path,
+        format="mp3",
+        tags={"title": track_name, "artist": artist_name, "album": album_name},
+    )
+    add_to_prev_downloads(url, mp3_path, yt.author, yt.title, yt.video_id, "audio")
+
+    return f"Audio downloaded and encoded as MP3. Track Name: {track_name}, Artist Name: {artist_name}"
+
+
+@app.route("/set_track_info", methods=["GET", "POST"])
 def set_track_info():
     form = TrackForm()
-    if request.method == 'GET':
-        url = request.args.get('url')
-    elif request.method == 'POST':
-        url = request.form['url']
-    
+    if request.method == "GET":
+        url = request.args.get("url")
+    elif request.method == "POST":
+        url = request.form["url"]
+
     yt = YouTube(url)
-    
+
     form.add_title(yt.title, yt.author)
     form.set_album_name()
     form.set_url(url)
-    
+
     if form.validate_on_submit():
-        return download_youtube_audio(url, form.track_name.data, form.artist_name.data,form.album_name.data)
-    return render_template('set_track_info.html', form=form)
+        return download_youtube_audio(
+            url, form.track_name.data, form.artist_name.data, form.album_name.data
+        )
+    return render_template("set_track_info.html", form=form)
+
 
 def load_prev_downloads():
     """
     Loads previous downloads from a pickle file.
     """
-    folder_path = os.getenv('DOWNLOAD_FOLDER_PATH')
+    folder_path = os.getenv("DOWNLOAD_FOLDER_PATH")
     try:
-        with open(folder_path + 'downloads.pkl', 'rb') as f:
+        with open(folder_path + "downloads.pkl", "rb") as f:
             prev_downloads = pickle.load(f)
     except FileNotFoundError:
         prev_downloads = {}
     return prev_downloads
 
-def add_to_prev_downloads(url, file_path,artist,album,title,type):
+
+def add_to_prev_downloads(url, file_path, artist, album, title, type):
     """
     Adds a download to the previous downloads pickle file."""
-    folder_path = os.getenv('DOWNLOAD_FOLDER_PATH')
+    folder_path = os.getenv("DOWNLOAD_FOLDER_PATH")
     prev_downloads = load_prev_downloads()
-    prev_downloads[url] = {'file_path': file_path, 'artist': artist, 'album': album, 'title': title, 'type': type}
-    pickle.dump(prev_downloads, open(folder_path + 'downloads.pkl', 'wb'))
+    prev_downloads[url] = {
+        "file_path": file_path,
+        "artist": artist,
+        "album": album,
+        "title": title,
+        "type": type,
+    }
+    pickle.dump(prev_downloads, open(folder_path + "downloads.pkl", "wb"))
+
 
 def download_youtube_video(url):
     """
     Downloads a YouTube video."""
-    folder_path = os.getenv('DOWNLOAD_FOLDER_PATH') + "/video"
+    folder_path = os.getenv("DOWNLOAD_FOLDER_PATH") + "/video"
     if folder_path == "/video":
-        return 'DOWNLOAD_FOLDER_PATH environment variable is not set'
-    
+        return "DOWNLOAD_FOLDER_PATH environment variable is not set"
+
     yt = YouTube(url)
     video = yt.streams.get_highest_resolution()
     video.download(output_path=folder_path)
-    add_to_prev_downloads(url, folder_path + '/' + yt.video_id + '.mp4', yt.author, yt.title, yt.video_id, 'video')
-    return 'Video downloaded'
+    add_to_prev_downloads(
+        url,
+        folder_path + "/" + yt.video_id + ".mp4",
+        yt.author,
+        yt.title,
+        yt.video_id,
+        "video",
+    )
+    return "Video downloaded"
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     app.run(debug=True)
-    #download_audio('https://www.youtube.com/watch?v=eFyc1g_6ffs')
-
-    
+    # download_audio('https://www.youtube.com/watch?v=eFyc1g_6ffs')
