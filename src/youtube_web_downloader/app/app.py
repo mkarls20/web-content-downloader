@@ -12,9 +12,6 @@ from dotenv import load_dotenv
 app = Flask(__name__)
 
 
-from dotenv import load_dotenv
-
-
 load_dotenv(".env.dev")
 if "DOWNLOAD_FOLDER_PATH" not in os.environ:
     os.environ["DOWNLOAD_FOLDER_PATH"] = "./downloads"
@@ -85,6 +82,10 @@ class TrackForm(FlaskForm):
 
         self.album_name.default = "Unknown"
 
+        self.album_name.default = "Unknown"
+
+
+@app.route("/", methods=["GET", "POST"])
 
 @app.route("/", methods=["GET", "POST"])
 def home():
@@ -103,36 +104,31 @@ def previous_downloads():
     prev_downloads = load_prev_downloads()
     return render_template("previous_downloads.html", prev_downloads=prev_downloads)
 
-    
 
-
-@app.route('/re_download', methods=['GET'])
-def re_download():
-    url = request.args.get('url')
-    # Add your re-download logic here using the 'url' parameter
-    return 'Re-download successful'
-
-@app.route('/delete', methods=['GET'])
+@app.route("/delete", methods=["GET"])
 def delete():
-    downloads_folder = os.getenv('DOWNLOAD_FOLDER_PATH')
+    downloads_folder = os.getenv("DOWNLOAD_FOLDER_PATH")
     if not downloads_folder:
-        return 'DOWNLOAD_FOLDER_PATH environment variable is not set'
-    file_path = downloads_folder + request.args.get('file_path')
-    url = request.args.get('url')
+        return "DOWNLOAD_FOLDER_PATH environment variable is not set"
+    file_path = downloads_folder + request.args.get("file_path")
+    url = request.args.get("url")
     prev_downloads = load_prev_downloads()
     if url in prev_downloads:
         del prev_downloads[url]
-        pickle.dump(prev_downloads, open(os.getenv('DOWNLOAD_FOLDER_PATH') + 'downloads.pkl', 'wb'))
+        pickle.dump(
+            prev_downloads,
+            open(os.getenv("DOWNLOAD_FOLDER_PATH") + "downloads.pkl", "wb"),
+        )
     try:
         os.remove(file_path)
     except FileNotFoundError:
-        print(f'File {file_path} not found')
+        print(f"File {file_path} not found")
         pass
 
-    return redirect(url_for('previous_downloads'))
+    return redirect(url_for("previous_downloads"))
 
 
-def download_youtube_youtube_audio(url, track_name, artist_name, album_name):
+def download_youtube_audio(url, track_name, artist_name, album_name):
     folder_path = os.getenv("DOWNLOAD_FOLDER_PATH") + "/audio"
     if folder_path == "/audio":
         return "DOWNLOAD_FOLDER_PATH environment variable is not set"
@@ -149,11 +145,11 @@ def download_youtube_youtube_audio(url, track_name, artist_name, album_name):
     audio_file.export(
         mp3_path,
         format="mp3",
-        tags={"title": track_name, "artist": artist_name, "album": album_name},ß
+        tags={"title": track_name, "artist": artist_name, "album": album_name},
     )
     add_to_prev_downloads(url, mp3_path, yt.author, yt.title, yt.video_id, "audio")
 
-    return f"Audio downloaded and encoded as MP3. Track Name: {track_name}, Artist Name: {artist_name}" 
+    return f"Audio downloaded and encoded as MP3. Track Name: {track_name}, Artist Name: {artist_name}"
 
 
 @app.route("/set_track_info", methods=["GET", "POST"])
