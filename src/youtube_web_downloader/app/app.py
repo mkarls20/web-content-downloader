@@ -7,8 +7,6 @@ import os
 from pydub import AudioSegment
 from wtforms.validators import DataRequired
 import re
-from pydub import AudioSegment
-from tinytag import TinyTag
 
 app = Flask(__name__)
 
@@ -97,13 +95,6 @@ def previous_downloads():
     return render_template('previous_downloads.html', prev_downloads=prev_downloads)
 
     
-
-
-@app.route('/re_download', methods=['GET'])
-def re_download():
-    url = request.args.get('url')
-    # Add your re-download logic here using the 'url' parameter
-    return 'Re-download successful'
 
 @app.route('/delete', methods=['GET'])
 def delete():
