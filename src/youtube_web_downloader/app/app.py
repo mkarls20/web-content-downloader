@@ -149,11 +149,11 @@ def download_youtube_youtube_audio(url, track_name, artist_name, album_name):
     audio_file.export(
         mp3_path,
         format="mp3",
-        tags={"title": track_name, "artist": artist_name, "album": album_name},
+        tags={"title": track_name, "artist": artist_name, "album": album_name},ß
     )
     add_to_prev_downloads(url, mp3_path, yt.author, yt.title, yt.video_id, "audio")
 
-    return f"Audio downloaded and encoded as MP3. Track Name: {track_name}, Artist Name: {artist_name}"
+    return f"Audio downloaded and encoded as MP3. Track Name: {track_name}, Artist Name: {artist_name}" 
 
 
 @app.route("/set_track_info", methods=["GET", "POST"])
