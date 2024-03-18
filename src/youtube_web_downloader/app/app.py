@@ -12,6 +12,9 @@ from dotenv import load_dotenv
 app = Flask(__name__)
 
 
+from dotenv import load_dotenv
+
+
 load_dotenv(".env.dev")
 if "DOWNLOAD_FOLDER_PATH" not in os.environ:
     os.environ["DOWNLOAD_FOLDER_PATH"] = "./downloads"
@@ -155,7 +158,7 @@ def delete():
 
     return redirect(url_for('previous_downloads'))
 
-def download_youtube_audio(url, track_name, artist_name, album_name):
+def download_youtube_youtube_audio(url, track_name, artist_name, album_name):
     folder_path = os.getenv("DOWNLOAD_FOLDER_PATH") + "/audio"
     if folder_path == "/audio":
         return "DOWNLOAD_FOLDER_PATH environment variable is not set"
