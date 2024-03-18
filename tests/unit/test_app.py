@@ -50,12 +50,12 @@ def test_download_submit_buttons( mock_download_audio: MagicMock,mock_download_v
 @patch('youtube_web_downloader.app.app.pickle')
 @patch('youtube_web_downloader.app.app.open')
 def test_download_video(mock_open,mock_pickle,mock_youtube):
-    from youtube_web_downloader.app.app import download_video
+    from youtube_web_downloader.app.app import download_youtube_video
     
     url = 'https://www.youtube.com/watch?v=eFyc1g_6ffs'
     # Test case 1: DOWNLOAD_FOLDER_PATH environment variable is set
     # Act
-    download_video(url)  # Call the download_video function with the given URL
+    download_youtube_video(url)  # Call the download_video function with the given URL
 
     # Assert
     mock_youtube.assert_called_once_with(url)  # Check that the mock YouTube object was called with the URL
@@ -67,7 +67,7 @@ def test_download_video(mock_open,mock_pickle,mock_youtube):
 
     # Act
     with patch('os.environ', {'DOWNLOAD_FOLDER_PATH': ''}):
-        response = download_video(url)
+        response = download_youtube_video(url)
     
     # Assert
     assert response == 'DOWNLOAD_FOLDER_PATH environment variable is not set'
@@ -78,7 +78,7 @@ def test_download_video(mock_open,mock_pickle,mock_youtube):
 @patch('youtube_web_downloader.app.app.AudioSegment')
 @patch('youtube_web_downloader.app.app.YouTube')
 def test_download_audio(mock_youtube: MagicMock, mock_audio_segment: MagicMock, mock_pickle: MagicMock,mock_open: MagicMock):
-    from youtube_web_downloader.app.app import download_audio
+    from youtube_web_downloader.app.app import download_youtube_audio
     #Setup mocks
     mock_youtube.return_value.streams.filter.return_value.first.return_value.download.return_value = './test_downloads/audio/audio.mp4'
 
@@ -87,7 +87,7 @@ def test_download_audio(mock_youtube: MagicMock, mock_audio_segment: MagicMock, 
     url = 'https://www.youtube.com/watch?v=eFyc1g_6ffs'
     # Test case 1: DOWNLOAD_FOLDER_PATH environment variable is set
     # Act
-    download_audio(url,"Test","Tchoupi","Unknown")
+    download_youtube_audio(url,"Test","Tchoupi","Unknown")
 
     # Assert
     mock_youtube.assert_called_once_with(url)
@@ -101,7 +101,7 @@ def test_download_audio(mock_youtube: MagicMock, mock_audio_segment: MagicMock, 
 
     # Act
     with patch('os.environ', {'DOWNLOAD_FOLDER_PATH': ''}):
-        response = download_audio(url,"Test","Tchoupi","Tchoupi")
+        response = download_youtube_audio(url,"Test","Tchoupi","Tchoupi")
 
     # Assert
     assert response == 'DOWNLOAD_FOLDER_PATH environment variable is not set'

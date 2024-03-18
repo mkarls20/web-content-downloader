@@ -13,10 +13,10 @@ from tinytag import TinyTag
 app = Flask(__name__)
 
 
-#from dotenv import load_dotenv
+from dotenv import load_dotenv
 
 
-#load_dotenv(".env.dev")
+load_dotenv(".env.dev")
 if "DOWNLOAD_FOLDER_PATH" not in os.environ:
     os.environ['DOWNLOAD_FOLDER_PATH'] = './downloads'
 if "SECRET_KEY" not in os.environ:
@@ -86,7 +86,7 @@ def home():
     if form.validate_on_submit():
         if form.video.data:
             print("hej")
-            return download_video(form.url.data)
+            return download_youtube_video(form.url.data)
         elif form.audio.data:
             return redirect(url_for('set_track_info', url=form.url.data))
     return render_template('home.html', form=form)
@@ -147,7 +147,7 @@ def delete():
 
     return redirect(url_for('previous_downloads'))
 
-def download_audio(url, track_name, artist_name, album_name):
+def download_youtube_audio(url, track_name, artist_name, album_name):
     folder_path = os.getenv('DOWNLOAD_FOLDER_PATH') + "/audio"
     if folder_path == "/audio":
         return 'DOWNLOAD_FOLDER_PATH environment variable is not set'
@@ -181,10 +181,13 @@ def set_track_info():
     form.set_url(url)
     
     if form.validate_on_submit():
-        return download_audio(url, form.track_name.data, form.artist_name.data,form.album_name.data)
+        return download_youtube_audio(url, form.track_name.data, form.artist_name.data,form.album_name.data)
     return render_template('set_track_info.html', form=form)
 
 def load_prev_downloads():
+    """
+    Loads previous downloads from a pickle file.
+    """
     folder_path = os.getenv('DOWNLOAD_FOLDER_PATH')
     try:
         with open(folder_path + 'downloads.pkl', 'rb') as f:
@@ -194,12 +197,16 @@ def load_prev_downloads():
     return prev_downloads
 
 def add_to_prev_downloads(url, file_path,artist,album,title,type):
+    """
+    Adds a download to the previous downloads pickle file."""
     folder_path = os.getenv('DOWNLOAD_FOLDER_PATH')
     prev_downloads = load_prev_downloads()
     prev_downloads[url] = {'file_path': file_path, 'artist': artist, 'album': album, 'title': title, 'type': type}
     pickle.dump(prev_downloads, open(folder_path + 'downloads.pkl', 'wb'))
 
-def download_video(url):
+def download_youtube_video(url):
+    """
+    Downloads a YouTube video."""
     folder_path = os.getenv('DOWNLOAD_FOLDER_PATH') + "/video"
     if folder_path == "/video":
         return 'DOWNLOAD_FOLDER_PATH environment variable is not set'
