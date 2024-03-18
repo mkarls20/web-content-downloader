@@ -10,13 +10,13 @@ def test_home_page():
     client = app.test_client()
     response = client.get('/')
     assert response.status_code == 200
-    assert b'<title>YouTube Downloader</title>' in response.data
+    assert b'<title>Media Downloader</title>' in response.data
 
 
 @patch('youtube_web_downloader.app.app.FlaskForm.validate_on_submit', return_value=True)        #TODO: Dont mock this. Fix the poest call so it validates true
-@patch('youtube_web_downloader.app.app.download_video')
-@patch('youtube_web_downloader.app.app.download_audio')
-def test_download_submit_buttons( mock_download_audio: MagicMock,mock_download_video: MagicMock, mock_validate_on_submit: MagicMock):
+@patch('youtube_web_downloader.app.app.download_youtube_video')
+@patch('youtube_web_downloader.app.app.download_youtube_audio')
+def test_download_submit_buttons( mock_download_youtube_audio: MagicMock,mock_download_youtube_video: MagicMock, mock_validate_on_submit: MagicMock):
     from youtube_web_downloader.app.app import app
     app.testing = True
     client = app.test_client()
@@ -26,13 +26,13 @@ def test_download_submit_buttons( mock_download_audio: MagicMock,mock_download_v
         response = client.post('/', data={'url': youtube_url , 'video': 'Download Video', 'csrf_token': generate_csrf()}, content_type='multipart/form-data')
 
     # Assert
-    mock_download_video.assert_called_once()  # Check that the mock function was called
-    mock_download_audio.assert_not_called()
+    mock_download_youtube_video.assert_called_once()  # Check that the mock function was called
+    mock_download_youtube_audio.assert_not_called()
 
 
     #Reset mocks
-    mock_download_audio.reset_mock()
-    mock_download_video.reset_mock()
+    mock_download_youtube_audio.reset_mock()
+    mock_download_youtube_video.reset_mock()
 
     #Act download audio
     with app.test_request_context():
@@ -49,13 +49,13 @@ def test_download_submit_buttons( mock_download_audio: MagicMock,mock_download_v
 @patch('youtube_web_downloader.app.app.YouTube')
 @patch('youtube_web_downloader.app.app.pickle')
 @patch('youtube_web_downloader.app.app.open')
-def test_download_video(mock_open,mock_pickle,mock_youtube):
+def test_download_youtube_video(mock_open,mock_pickle,mock_youtube):
     from youtube_web_downloader.app.app import download_youtube_video
     
     url = 'https://www.youtube.com/watch?v=eFyc1g_6ffs'
     # Test case 1: DOWNLOAD_FOLDER_PATH environment variable is set
     # Act
-    download_youtube_video(url)  # Call the download_video function with the given URL
+    download_youtube_video(url)  # Call the download_youtube_video function with the given URL
 
     # Assert
     mock_youtube.assert_called_once_with(url)  # Check that the mock YouTube object was called with the URL
@@ -77,7 +77,7 @@ def test_download_video(mock_open,mock_pickle,mock_youtube):
 @patch('youtube_web_downloader.app.app.pickle')
 @patch('youtube_web_downloader.app.app.AudioSegment')
 @patch('youtube_web_downloader.app.app.YouTube')
-def test_download_audio(mock_youtube: MagicMock, mock_audio_segment: MagicMock, mock_pickle: MagicMock,mock_open: MagicMock):
+def test_download_youtube_audio(mock_youtube: MagicMock, mock_audio_segment: MagicMock, mock_pickle: MagicMock,mock_open: MagicMock):
     from youtube_web_downloader.app.app import download_youtube_audio
     #Setup mocks
     mock_youtube.return_value.streams.filter.return_value.first.return_value.download.return_value = './test_downloads/audio/audio.mp4'
@@ -106,9 +106,9 @@ def test_download_audio(mock_youtube: MagicMock, mock_audio_segment: MagicMock, 
     # Assert
     assert response == 'DOWNLOAD_FOLDER_PATH environment variable is not set'
 
-@patch('youtube_web_downloader.app.app.download_audio')
+@patch('youtube_web_downloader.app.app.download_youtube_audio')
 @patch('youtube_web_downloader.app.app.YouTube')
-def test_set_track_info_1(mock_youtube: MagicMock, mock_download_audio: MagicMock):
+def test_set_track_info_1(mock_youtube: MagicMock, mock_download_youtube_audio: MagicMock):
     from youtube_web_downloader.app.app import app
     
     app.testing = True
@@ -132,10 +132,10 @@ def test_set_track_info_1(mock_youtube: MagicMock, mock_download_audio: MagicMoc
     
     assert b'<input id="track_name" name="track_name" required size="20" type="text" value="Test">' in response.data
     assert b'<input id="artist_name" name="artist_name" required size="20" type="text" value="Tchoupi">' in response.data
-    mock_download_audio.assert_not_called()
-@patch('youtube_web_downloader.app.app.download_audio')
+    mock_download_youtube_audio.assert_not_called()
+@patch('youtube_web_downloader.app.app.download_youtube_audio')
 @patch('youtube_web_downloader.app.app.YouTube')
-def test_set_track_info_2(mock_youtube: MagicMock, mock_download_audio: MagicMock):
+def test_set_track_info_2(mock_youtube: MagicMock, mock_download_youtube_audio: MagicMock):
     from youtube_web_downloader.app.app import app
     
     app.testing = True
@@ -148,7 +148,7 @@ def test_set_track_info_2(mock_youtube: MagicMock, mock_download_audio: MagicMoc
     mock_youtube.return_value.author = 'Hej'
 
     # Test case 2: POST request
-    mock_download_audio.reset_mock()
+    mock_download_youtube_audio.reset_mock()
     with app.test_request_context():
         data={'track_name': 'Test', 'artist_name': 'Tchoupi', 'csrf_token': generate_csrf(),"url":youtube_url}
 
@@ -159,7 +159,7 @@ def test_set_track_info_2(mock_youtube: MagicMock, mock_download_audio: MagicMoc
 
 
     assert response.status_code == 200
-    mock_download_audio.assert_called_once_with(youtube_url, 'Test', 'Tchoupi','Tchoupi')
+    mock_download_youtube_audio.assert_called_once_with(youtube_url, 'Test', 'Tchoupi','Tchoupi')
     
 
 
