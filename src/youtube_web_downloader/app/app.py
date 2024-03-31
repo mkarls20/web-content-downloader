@@ -1,4 +1,3 @@
-import pickle
 from flask import Flask, redirect, render_template, request, url_for
 from flask_wtf import FlaskForm
 from wtforms import HiddenField, StringField, SubmitField
@@ -8,9 +7,11 @@ from pydub import AudioSegment
 from wtforms.validators import DataRequired
 import re
 from dotenv import load_dotenv
+from ._utils import add_to_prev_downloads
+from .previous_list import previous_bp
 
 app = Flask(__name__)
-
+app.register_blueprint(previous_bp)
 
 load_dotenv(".env.dev")
 if "DOWNLOAD_FOLDER_PATH" not in os.environ:
@@ -95,35 +96,6 @@ def home():
     return render_template("home.html", form=form)
 
 
-@app.route("/previous_downloads", methods=["GET"])
-def previous_downloads():
-    prev_downloads = load_prev_downloads()
-    return render_template("previous_downloads.html", prev_downloads=prev_downloads)
-
-
-@app.route("/delete", methods=["GET"])
-def delete():
-    downloads_folder = os.getenv("DOWNLOAD_FOLDER_PATH")
-    if not downloads_folder:
-        return "DOWNLOAD_FOLDER_PATH environment variable is not set"
-    file_path = downloads_folder + request.args.get("file_path")
-    url = request.args.get("url")
-    prev_downloads = load_prev_downloads()
-    if url in prev_downloads:
-        del prev_downloads[url]
-        pickle.dump(
-            prev_downloads,
-            open(os.getenv("DOWNLOAD_FOLDER_PATH") + "downloads.pkl", "wb"),
-        )
-    try:
-        os.remove(file_path)
-    except FileNotFoundError:
-        print(f"File {file_path} not found")
-        pass
-
-    return redirect(url_for("previous_downloads"))
-
-
 def download_youtube_audio(url, track_name, artist_name, album_name):
     folder_path = os.getenv("DOWNLOAD_FOLDER_PATH") + "/audio"
     if folder_path == "/audio":
@@ -167,34 +139,6 @@ def set_track_info():
             url, form.track_name.data, form.artist_name.data, form.album_name.data
         )
     return render_template("set_track_info.html", form=form)
-
-
-def load_prev_downloads():
-    """
-    Loads previous downloads from a pickle file.
-    """
-    folder_path = os.getenv("DOWNLOAD_FOLDER_PATH")
-    try:
-        with open(folder_path + "downloads.pkl", "rb") as f:
-            prev_downloads = pickle.load(f)
-    except FileNotFoundError:
-        prev_downloads = {}
-    return prev_downloads
-
-
-def add_to_prev_downloads(url, file_path, artist, album, title, type):
-    """
-    Adds a download to the previous downloads pickle file."""
-    folder_path = os.getenv("DOWNLOAD_FOLDER_PATH")
-    prev_downloads = load_prev_downloads()
-    prev_downloads[url] = {
-        "file_path": file_path,
-        "artist": artist,
-        "album": album,
-        "title": title,
-        "type": type,
-    }
-    pickle.dump(prev_downloads, open(folder_path + "downloads.pkl", "wb"))
 
 
 def download_youtube_video(url):
