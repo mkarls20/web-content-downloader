@@ -7,8 +7,20 @@ WORKDIR /app
 # Install Poetry
 RUN pip install poetry
 
+RUN apt-get -y update; apt-get -y install curl
+
+# Add the PGP release keys:
+RUN curl -s https://svtplay-dl.se/release-key.txt --output /usr/share/keyrings/svtplay-dl.txt
+
+# Add the release channel to your APT sources:
+
+RUN echo "deb [signed-by=/usr/share/keyrings/svtplay-dl.txt] https://apt.svtplay-dl.se/ svtplay-dl release" | tee /etc/apt/sources.list.d/svtplay-dl.list
+
 # Update and upgrade apt
 RUN apt-get update && apt-get upgrade -y
+
+# Update and install svtplay-dl:
+RUN apt install -y svtplay-dl
 
 #Download ffmpeg
 RUN apt-get install -y ffmpeg
