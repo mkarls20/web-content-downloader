@@ -20,7 +20,7 @@ RUN echo "deb [signed-by=/usr/share/keyrings/svtplay-dl.txt] https://apt.svtplay
 RUN apt-get update && apt-get upgrade -y
 
 # Update and install svtplay-dl:
-RUN apt install svtplay-dl
+RUN apt install -y svtplay-dl
 
 #Download ffmpeg
 RUN apt-get install -y ffmpeg
