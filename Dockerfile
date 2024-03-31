@@ -14,7 +14,7 @@ RUN curl -s https://svtplay-dl.se/release-key.txt --output /usr/share/keyrings/s
 
 # Add the release channel to your APT sources:
 
-RUN echo "deb [signed-by=/usr/share/keyrings/svtplay-dl.txt] https://apt.svtplay-dl.se/ svtplay-dl release" | sudo tee /etc/apt/sources.list.d/svtplay-dl.list
+RUN echo "deb [signed-by=/usr/share/keyrings/svtplay-dl.txt] https://apt.svtplay-dl.se/ svtplay-dl release" | tee /etc/apt/sources.list.d/svtplay-dl.list
 
 # Update and upgrade apt
 RUN apt-get update && apt-get upgrade -y
