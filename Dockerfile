@@ -7,7 +7,7 @@ WORKDIR /app
 # Install Poetry
 RUN pip install poetry
 
-RUN apt-get install curl
+RUN apt-get -y update; apt-get -y install curl
 
 # Add the PGP release keys:
 RUN curl -s https://svtplay-dl.se/release-key.txt --output /usr/share/keyrings/svtplay-dl.txt
